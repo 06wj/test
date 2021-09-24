@@ -32,12 +32,13 @@
     let fps = 0;
     let t = new Date().getTime();
     const render = () => {
+      requestAnimationFrame(render);
       gl.clearColor(Math.random(), Math.random(), Math.random(), 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
-      requestAnimationFrame(render);
+  
       fps ++;
       const now = new Date().getTime();
-      if (now - t > 1000) {
+      if (now - t >= 1000) {
         span.innerHTML = fps;
         t = now;
         fps = 0;
