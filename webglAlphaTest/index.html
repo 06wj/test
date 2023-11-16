@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebGL Alpha Test</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+      }
+
+      #ui {
+        position: absolute;
+        left: 5px;
+        top: 5px;
+        color: #fff;
+        padding: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div id="ui"></div>
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ui = document.getElementById('ui');
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+
+      const gl = canvas.getContext("webgl", {
+        alpha: true,
+        antialias: true,
+        depth: true,
+        premultipliedAlpha: true,
+        preserveDrawingBuffer: false,
+        stencil: false,
+      });
+
+      const alphaArray = [0, 0.5, 1];
+      let i = 0;
+      let alpha;;
+
+      const render = () => {
+        alpha = alphaArray[i];
+        gl.clearColor(1, 0, 0, alpha);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        ui.innerHTML = `clearColor: 1, 0, 0, ${alpha}`;
+        i = (++i) % alphaArray.length;
+      }
+
+      render();
+      setInterval(render, 1000);
+    </script>
+  </body>
+</html>
