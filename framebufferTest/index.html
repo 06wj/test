@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Framebuffer test</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+    }
+    canvas {
+      position: absolute;
+      display: block;
+      transform: translate(-50%, -50%);
+      left: 50%;
+      top: 50%;
+    }
+  </style>
+</head>
+<body>
+ <script src="//cdn.jsdelivr.net/npm/hilo3d@1.19.0/build/Hilo3d.js"></script>
+ <div id="container"></div>
+ <script>
+  const gameWidth = 512;
+  const gameHeight = 512.3;
+  const camera = new Hilo3d.PerspectiveCamera({
+      aspect: gameWidth / gameHeight,
+      far: 100,
+      near: 0.1,
+      z: 3
+  });
+
+  const stage = new Hilo3d.Stage({
+      container: document.getElementById('container'),
+      camera: camera,
+      clearColor: new Hilo3d.Color(0.3, 0.4, 0.35),
+      width: gameWidth,
+      height: gameHeight,
+      preferWebGL2: location.search.indexOf('webgl2') > -1,
+      antialias: true,
+      alpha: true,
+      useFramebuffer: true
+  });
+
+  new Hilo3d.DirectionalLight({
+      color: new Hilo3d.Color(1, 1, 1),
+      direction: new Hilo3d.Vector3(0, -1, 0)
+  }).addTo(stage);
+
+  const ticker = new Hilo3d.Ticker(60);
+  ticker.addTick(stage);
+  ticker.start();
+
+  var box = new Hilo3d.Mesh({
+      geometry:new Hilo3d.BoxGeometry(),
+      material: new Hilo3d.BasicMaterial({
+          diffuse:new Hilo3d.Color(.9, .6, .3)
+      }),
+      rotationX:45,
+      onUpdate: function() {
+          this.rotationX += .5;
+          this.rotationZ += .5;
+      }
+  });
+  stage.addChild(box);
+ </script>
+</body>
+</html>
