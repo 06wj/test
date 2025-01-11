@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>buffer data test</title>
+  <style>
+    body, div {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="webgl"></canvas>
+  <script>
+    const canvas = document.getElementById('webgl');
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+    const gl = canvas.getContext('webgl2');
+
+    // Vertex shader program
+    const vsSource = `
+      attribute vec2 aPosition;
+      uniform vec2 uTranslation;
+      void main() {
+        gl_Position = vec4((aPosition) * .4 + uTranslation, 0.0, 1.0);
+      }
+    `;
+
+    // Fragment shader program
+    const fsSource = `
+      void main() {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
+      }
+    `;
+
+    // Initialize shaders
+    function initShaderProgram(gl, vsSource, fsSource) {
+      const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+      const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+      const shaderProgram = gl.createProgram();
+      gl.attachShader(shaderProgram, vertexShader);
+      gl.attachShader(shaderProgram, fragmentShader);
+      gl.linkProgram(shaderProgram);
+
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+        return null;
+      }
+      return shaderProgram;
+    }
+
+    function loadShader(gl, type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    }
+
+    const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    const programInfo = {
+      program: shaderProgram,
+      attribLocations: {
+        vertexPosition: gl.getAttribLocation(shaderProgram, 'aPosition'),
+      },
+    };
+
+    gl.useProgram(programInfo.program);
+    const uTranslationLoc = gl.getUniformLocation(shaderProgram, 'uTranslation');
+
+    function drawShape(x, y) {
+      gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 2, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+      gl.uniform2f(uTranslationLoc, x, y);
+
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+
+    const data0 = new Float32Array([
+      -0.5, -0.5,
+       0.5, -0.5,
+       0.5,  0.5,
+      -0.5,  0.5,
+    ]);
+
+    const data1 = new Float32Array([
+      0, 0,
+      -0.5, -0.5,
+       0.5, -0.5,
+       0.5,  0.5,
+      -0.5,  0.5,
+    ]);
+
+    const data2 = new Float32Array([
+      0, 0,
+      -0.5, -0.5,
+       0.5, -0.5,
+       0.5,  0.5,
+      -0.5,  0.5,
+      0, 0,
+    ]);
+
+    const webglBuffer0 = gl.createBuffer();
+    const webglBuffer1 = gl.createBuffer();
+    const webglBuffer2 = gl.createBuffer();
+    const webglBuffer3 = gl.createBuffer();
+    const webglBuffer4 = gl.createBuffer();
+    
+
+    const loop = () => {
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      // top,left: bufferData(target, srcData, usage)
+      gl.bindBuffer(gl.ARRAY_BUFFER, webglBuffer0);
+      gl.bufferData(gl.ARRAY_BUFFER, data0, gl.STATIC_DRAW);
+      drawShape(-.5, .5);
+
+      // top, right: bufferData(target, srcData, usage, srcOffset, 0)
+      gl.bindBuffer(gl.ARRAY_BUFFER, webglBuffer1);
+      gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(data1.buffer), gl.STATIC_DRAW, 8, 0);
+      drawShape(.5, .5);
+
+      // bottom, left: bufferData(target, srcData, usage, srcOffset)
+      gl.bindBuffer(gl.ARRAY_BUFFER, webglBuffer2);
+      gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(data1.buffer), gl.STATIC_DRAW, 8);
+      drawShape(-.5, -.5);
+
+      // bottom, right: bufferData(target, srcData, usage, srcOffset, length)
+      gl.bindBuffer(gl.ARRAY_BUFFER, webglBuffer3);
+      gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(data2.buffer), gl.STATIC_DRAW, 8, 32);
+      drawShape(.5, -.5);
+
+      // center: bufferData(target, size, usage)
+      gl.bindBuffer(gl.ARRAY_BUFFER, webglBuffer4);
+      gl.bufferData(gl.ARRAY_BUFFER, 32, gl.STATIC_DRAW);
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, data0);
+      drawShape(0, 0);
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>
